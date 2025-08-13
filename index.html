@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Documentos IA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <!-- Mermaid.js for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <!-- html2canvas and jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0a09;
+            color: #d4d4d4;
+        }
+        /* Prose for markdown styling */
+        .prose h1, .prose h2, .prose h3 {
+            color: #e5e7eb;
+        }
+        .prose p {
+            color: #a1a1aa;
+        }
+        .prose ul, .prose ol {
+            color: #a1a1aa;
+        }
+        .prose a {
+            color: #38bdf8;
+        }
+        .prose pre {
+            background-color: #1f2937;
+            color: #e5e7eb;
+        }
+        .prose table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .prose th, .prose td {
+            border: 1px solid #4b5563;
+            padding: 8px;
+            text-align: left;
+        }
+        .prose th {
+            background-color: #1f2937;
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen bg-gray-950 text-gray-100 font-sans">
+    
+    <!-- Sidebar / Panel de control -->
+    <div class="w-full sm:w-1/3 md:w-1/4 lg:w-1/5 bg-gray-900 p-6 flex flex-col justify-between border-r border-gray-800">
+        <div class="space-y-6">
+            <header class="text-center">
+                <div class="h-10 w-10 mx-auto text-blue-500 mb-2" id="bot-icon-placeholder"></div>
+                <h1 class="text-xl font-bold tracking-tight">
+                    Generador IA
+                </h1>
+            </header>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="prompt-input" class="block text-sm font-medium text-gray-400 mb-1">
+                        Instrucción
+                    </label>
+                    <textarea
+                        id="prompt-input"
+                        class="w-full h-24 p-2 text-sm bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                        placeholder="Ej: Siguiendo la plantilla proporcionada, crea un documento del modelo de dominio del proyecto para una aplicación de gestión de tareas. Incluye los diagramas de clases y de paquetes."
+                    ></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                        Contexto (Opcional)
+                    </label>
+                    <div id="file-status-container">
+                        <div class="space-y-2">
+                            <label
+                                for="file-upload"
+                                class="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold text-sm rounded-xl shadow-lg cursor-pointer transition-all duration-300"
+                            >
+                                <div class="h-4 w-4" id="upload-icon-placeholder"></div>
+                                <span>Subir Documento</span>
+                                <input id="file-upload" type="file" class="hidden" accept=".txt, .md, .pdf" />
+                            </label>
+                            <textarea
+                                id="context-textarea"
+                                class="w-full h-16 p-2 text-sm bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                placeholder="o pega tu texto aquí..."
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col space-y-4">
+            <button
+                id="generate-btn"
+                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+            >
+                <div class="h-4 w-4" id="generate-icon-placeholder"></div>
+                <span id="generate-btn-text">Generar Documento</span>
+            </button>
+            <button
+                id="download-btn"
+                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                disabled
+            >
+                <div class="h-4 w-4" id="download-icon-placeholder"></div>
+                <span id="download-btn-text">Descargar como PDF</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Área del documento principal -->
+    <div class="flex-1 p-6 md:p-12 lg:p-16 flex justify-center">
+        <div id="document-content-container" class="w-full max-w-2xl bg-gray-800 p-8 rounded-2xl shadow-xl overflow-y-auto">
+            <div id="document-content-placeholder" class="h-full flex items-center justify-center text-center text-gray-500">
+                <span class="text-lg">Tu documento aparecerá aquí.</span>
+            </div>
+            <div id="document-content" class="hidden prose max-w-none prose-invert prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed prose-li:text-base"></div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const promptInput = document.getElementById('prompt-input');
+            const contextTextarea = document.getElementById('context-textarea');
+            const fileUpload = document.getElementById('file-upload');
+            const generateBtn = document.getElementById('generate-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const documentContentContainer = document.getElementById('document-content-container');
+            const documentContentDiv = document.getElementById('document-content');
+            const documentContentPlaceholder = document.getElementById('document-content-placeholder');
+            const fileStatusContainer = document.getElementById('file-status-container');
+            
+            // Set up Lucide icons
+            document.getElementById('bot-icon-placeholder').innerHTML = lucide.createIcons()['Bot'].toSvg();
+            document.getElementById('upload-icon-placeholder').innerHTML = lucide.createIcons()['FileUp'].toSvg();
+            document.getElementById('generate-icon-placeholder').innerHTML = lucide.createIcons()['Wand2'].toSvg();
+            document.getElementById('download-icon-placeholder').innerHTML = lucide.createIcons()['Download'].toSvg();
+
+            // Set up PDF.js worker
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+            }
+
+            // Set up Mermaid.js
+            if (typeof mermaid !== 'undefined') {
+                mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+            }
+
+            let fileName = '';
+
+            // Handle file change
+            fileUpload.addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                fileName = file.name;
+                contextTextarea.value = '';
+
+                if (file.type === 'application/pdf' && typeof pdfjsLib !== 'undefined') {
+                    // Show PDF loading state
+                    fileStatusContainer.innerHTML = `
+                        <div class="flex items-center justify-center space-x-2 p-2 bg-gray-800 border border-gray-700 rounded-lg">
+                            ${lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin text-blue-400' })}
+                            <span class="text-xs text-gray-300">Cargando PDF...</span>
+                        </div>
+                    `;
+                    
+                    const fileReader = new FileReader();
+                    fileReader.onload = async (e) => {
+                        try {
+                            const typedarray = new Uint8Array(e.target.result);
+                            const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                            let pdfText = '';
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textContent = await page.getTextContent();
+                                pdfText += textContent.items.map(item => item.str).join(' ');
+                            }
+                            contextTextarea.value = pdfText;
+                        } catch (error) {
+                            console.error('Error reading PDF:', error);
+                            contextTextarea.value = 'Error: No se pudo leer el archivo PDF.';
+                        } finally {
+                            // Restore file status UI
+                            renderFileStatus();
+                        }
+                    };
+                    fileReader.readAsArrayBuffer(file);
+                } else if (file.type === 'text/plain' || file.name.endsWith('.md')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        contextTextarea.value = e.target.result;
+                    };
+                    reader.readAsText(file);
+                    renderFileStatus();
+                } else {
+                    contextTextarea.value = 'Error: Tipo de archivo no soportado.';
+                    fileName = '';
+                    renderFileStatus();
+                }
+            });
+
+            // Handle file removal
+            function handleRemoveFile() {
+                fileName = '';
+                contextTextarea.value = '';
+                fileUpload.value = '';
+                renderFileStatus();
+            }
+
+            // Render file status UI
+            function renderFileStatus() {
+                if (fileName) {
+                    fileStatusContainer.innerHTML = `
+                        <div class="flex items-center justify-between p-2 bg-gray-800 border border-gray-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                ${lucide.createIcons()['File'].toSvg({ class: 'h-4 w-4 text-green-400' })}
+                                <span class="text-xs text-gray-300 truncate">${fileName}</span>
+                            </div>
+                            <button id="remove-file-btn" class="p-1 rounded-full text-gray-400 hover:text-red-400 transition-colors">
+                                ${lucide.createIcons()['Trash2'].toSvg({ class: 'h-3 w-3' })}
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('remove-file-btn').addEventListener('click', handleRemoveFile);
+                } else {
+                    fileStatusContainer.innerHTML = `
+                        <div class="space-y-2">
+                            <label
+                                for="file-upload"
+                                class="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold text-sm rounded-xl shadow-lg cursor-pointer transition-all duration-300"
+                            >
+                                ${lucide.createIcons()['FileUp'].toSvg({ class: 'h-4 w-4' })}
+                                <span>Subir Documento</span>
+                                <input id="file-upload" type="file" class="hidden" accept=".txt, .md, .pdf" />
+                            </label>
+                            <textarea
+                                id="context-textarea"
+                                class="w-full h-16 p-2 text-sm bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                placeholder="o pega tu texto aquí..."
+                            ></textarea>
+                        </div>
+                    `;
+                    document.getElementById('file-upload').addEventListener('change', fileUpload.onchange);
+                }
+            }
+
+            // Generate document function
+            generateBtn.addEventListener('click', async () => {
+                const prompt = promptInput.value;
+                const context = contextTextarea.value;
+                
+                if (!prompt && !context) return;
+                
+                // Update UI state
+                generateBtn.disabled = true;
+                downloadBtn.disabled = true;
+                document.getElementById('generate-btn-text').textContent = 'Generando...';
+                document.getElementById('generate-icon-placeholder').innerHTML = lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin' });
+                documentContentPlaceholder.classList.remove('hidden');
+                documentContentDiv.classList.add('hidden');
+                documentContentDiv.innerHTML = '';
+                
+                // Aclaramos al modelo que puede usar tablas de Markdown y diagramas de Mermaid
+                const instructionWithDiagrams = `Por favor, genera un documento del modelo de dominio del proyecto siguiendo estas instrucciones:\n\n${prompt}\n\nFormatea el documento utilizando las reglas de APA v7. Si se solicitan diagramas (clases, paquetes, etc.), usa el formato de Mermaid (envuelto en \`\`\`mermaid ... \`\`\`). Para las tablas, usa el formato estándar de Markdown.`;
+                const fullPrompt = context ? `Usando el siguiente documento como contexto:\n\n${context}\n\nBasado en este contexto, por favor, completa la siguiente tarea:\n\n${instructionWithDiagrams}` : instructionWithDiagrams;
+                
+                try {
+                    const chatHistory = [{ role: "user", parts: [{ text: fullPrompt }] }];
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`La llamada a la API falló con el estado: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    let generatedText = "Lo siento, no pude generar un documento. Por favor, intenta con otra solicitud.";
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        generatedText = result.candidates[0].content.parts[0].text;
+                    }
+
+                    // Handle Mermaid.js blocks specifically
+                    const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
+                    const processedText = generatedText.replace(mermaidRegex, (match, p1) => {
+                        return `<div class="mermaid">${p1}</div>`;
+                    });
+                    
+                    const htmlContent = marked.parse(processedText);
+                    documentContentDiv.innerHTML = htmlContent;
+                    documentContentPlaceholder.classList.add('hidden');
+                    documentContentDiv.classList.remove('hidden');
+
+                    if (typeof mermaid !== 'undefined') {
+                        mermaid.init(undefined, '.mermaid');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error al generar el documento:', error);
+                    documentContentDiv.innerHTML = "Ocurrió un error. Por favor, revisa la consola para más detalles.";
+                    documentContentPlaceholder.classList.add('hidden');
+                    documentContentDiv.classList.remove('hidden');
+                } finally {
+                    generateBtn.disabled = false;
+                    downloadBtn.disabled = false;
+                    document.getElementById('generate-btn-text').textContent = 'Generar Documento';
+                    document.getElementById('generate-icon-placeholder').innerHTML = lucide.createIcons()['Wand2'].toSvg({ class: 'h-4 w-4' });
+                }
+            });
+
+            // Download PDF function
+            downloadBtn.addEventListener('click', async () => {
+                if (documentContentDiv.classList.contains('hidden')) return;
+
+                downloadBtn.disabled = true;
+                document.getElementById('download-btn-text').textContent = 'Creando PDF...';
+                document.getElementById('download-icon-placeholder').innerHTML = lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin' });
+
+                try {
+                    const docElement = document.getElementById('document-content-container');
+                    
+                    const canvas = await html2canvas(docElement, {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#1f2937'
+                    });
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jspdf.jsPDF({
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    const imgWidth = 210; 
+                    const pageHeight = 295;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
+
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    pdf.save('documento_dominio.pdf');
+                } catch (error) {
+                    console.error('Error al crear el PDF:', error);
+                    alert('Ocurrió un error al crear el PDF. Por favor, revisa la consola.');
+                } finally {
+                    downloadBtn.disabled = false;
+                    document.getElementById('download-btn-text').textContent = 'Descargar como PDF';
+                    document.getElementById('download-icon-placeholder').innerHTML = lucide.createIcons()['Download'].toSvg({ class: 'h-4 w-4' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
