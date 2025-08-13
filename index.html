@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Documentos IA</title>
+    <title>AI Document Generator</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -22,16 +22,15 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #e2e8f0;
-            color: #1f2937;
+            background: #f1f5f9; /* slate-100 */
+            color: #1f2937; /* gray-800 */
         }
 
-        /* Glassmorphism Effect */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.4);
+        .ai-card {
+            background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease-in-out;
         }
 
@@ -64,338 +63,332 @@
             background-color: #e5e7eb;
             color: #1f2937;
         }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
-<body class="flex flex-col min-h-screen bg-gray-200 text-gray-800">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 bg-slate-100">
 
-    <div class="flex-1 flex flex-col items-center p-6 md:p-12 lg:p-16">
-        <!-- Main Content Area -->
-        <div class="w-full max-w-xl text-center mb-10">
-            <h1 class="text-3xl font-light text-gray-800">Hello Cesar Torrecilla</h1>
-            <p class="text-xl font-light text-gray-600">What can I do for you?</p>
-        </div>
+    <!-- Main AI Card -->
+    <div class="ai-card w-full max-w-4xl p-8 rounded-3xl mx-auto my-auto flex flex-col items-center">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extralight text-gray-800">Hello, how can I help you?</h1>
+        </header>
 
-        <!-- AI Interaction Card -->
-        <div class="w-full max-w-xl p-6 rounded-2xl shadow-xl glass-panel">
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
-                         <div class="h-4 w-4" id="upload-icon-placeholder"></div>
-                         <span class="text-sm font-medium text-gray-700 truncate" id="file-upload-status">Subir Documentos</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button id="generate-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100">
-                             <div class="h-4 w-4 inline-block" id="generate-icon-placeholder"></div>
-                             <span id="generate-btn-text">Generar</span>
-                        </button>
-                        <button id="download-btn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold text-sm rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100" disabled>
-                             <div class="h-4 w-4 inline-block" id="download-icon-placeholder"></div>
-                             <span id="download-btn-text">Descargar</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="uploaded-files-container" class="space-y-2 max-h-32 overflow-y-auto">
-                    <!-- Uploaded files will be rendered here -->
-                </div>
-
-                <div>
-                    <label for="prompt-input" class="sr-only">Instrucción</label>
-                    <textarea
-                        id="prompt-input"
-                        class="w-full h-24 p-2 text-sm bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                        placeholder="Ej: Siguiendo la plantilla, crea un documento del modelo de dominio de un proyecto de gestión de tareas."
-                    ></textarea>
-                </div>
-            </div>
-            
-            <!-- Suggestions section -->
-            <div class="mt-8">
-                <p class="text-gray-500 text-sm mb-2">Aquí tienes lo que podrías hacer con Manus:</p>
-                <ul class="space-y-2 text-sm text-gray-700">
-                    <li class="flex items-center space-x-2">
-                        <div class="h-4 w-4" id="check-icon-placeholder"></div>
-                        <span>Analizar los diagramas UML para identificar mejoras potenciales en una plataforma.</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                        <div class="h-4 w-4" id="check-icon-placeholder2"></div>
-                        <span>Generar una presentación que explique las características clave de la plataforma.</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                        <div class="h-4 w-4" id="check-icon-placeholder3"></div>
-                        <span>Crear una visualización de la metodología Kanban aplicada a un proyecto.</span>
-                    </li>
-                </ul>
+        <!-- Dropzone and File List -->
+        <div id="dropzone" class="w-full mb-6 p-6 border-2 border-dashed border-gray-300 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:border-blue-500 hover:bg-blue-50">
+            <input type="file" id="file-upload" class="hidden" multiple accept=".txt, .md, .pdf" />
+            <div class="flex flex-col items-center justify-center">
+                <div class="h-8 w-8 text-gray-400" id="upload-icon-placeholder"></div>
+                <p class="mt-2 text-sm text-gray-500">Arrastra y suelta archivos aquí, o haz clic para subir</p>
+                <p class="text-xs text-gray-400">Archivos soportados: .txt, .md, .pdf</p>
             </div>
         </div>
 
-        <!-- Document Preview Area (hidden by default) -->
-        <div id="document-content-container" class="w-full max-w-3xl mt-12 p-8 rounded-2xl shadow-xl glass-panel hidden">
+        <!-- Uploaded Files List -->
+        <div id="uploaded-files-container" class="w-full space-y-2 mb-6 max-h-48 overflow-y-auto hidden">
+            <!-- Files will be dynamically added here -->
+        </div>
+
+        <!-- Prompt and Action Buttons -->
+        <div class="w-full flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-6">
+            <textarea
+                id="prompt-input"
+                class="flex-1 p-4 text-sm bg-white rounded-2xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
+                rows="3"
+                placeholder="Ej: Siguiendo la plantilla, crea un documento del modelo de dominio del proyecto para una aplicación de gestión de tareas."
+            ></textarea>
+            <div class="flex flex-col space-y-2">
+                <button
+                    id="generate-btn"
+                    class="flex-1 flex items-center justify-center space-x-2 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                >
+                    <div class="h-5 w-5" id="generate-icon-placeholder"></div>
+                    <span id="generate-btn-text">Generar</span>
+                </button>
+                <button
+                    id="download-btn"
+                    class="flex-1 flex items-center justify-center space-x-2 px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                    disabled
+                >
+                    <div class="h-5 w-5" id="download-icon-placeholder"></div>
+                    <span id="download-btn-text">Descargar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Document Preview Area -->
+        <div id="document-content-container" class="w-full p-8 rounded-2xl bg-white shadow-inner hidden fade-in-up">
             <div id="document-content" class="prose max-w-none prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed prose-li:text-base"></div>
         </div>
     </div>
     
-    <!-- Recomendations/Footer -->
-    <div class="w-full bg-gray-50 p-6 border-t border-gray-200">
-        <p class="text-sm font-medium text-gray-600 text-center mb-4">Recomendaciones</p>
-        <div class="flex flex-wrap justify-center gap-4">
-            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Recomendado</span>
-            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Destacado</span>
-            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Datos</span>
-            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Productividad</span>
-            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Programación</span>
+    <!-- AI Status Notification -->
+    <div id="ai-status-window" class="fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-xl shadow-2xl bg-blue-600 text-white opacity-0 transition-all duration-500 z-50 transform -translate-y-full">
+        <div class="flex items-center space-x-3">
+            <div class="h-5 w-5 animate-spin" id="ai-status-icon-placeholder"></div>
+            <span id="ai-status-text" class="text-sm font-semibold"></span>
         </div>
     </div>
-    
-    <input id="file-upload" type="file" class="hidden" multiple accept=".txt, .md, .pdf" />
 
-    <script>
+    <!-- The actual script logic is written in TypeScript and transpiled to JS -->
+    <script type="text/javascript">
+        "use strict";
+        var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+            function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+            return new (P || (P = Promise))(function (resolve, reject) {
+                function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+                function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+                function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+                step((generator = generator.apply(thisArg, _arguments || [])).next());
+            });
+        };
         document.addEventListener('DOMContentLoaded', () => {
             const promptInput = document.getElementById('prompt-input');
             const fileUpload = document.getElementById('file-upload');
-            const fileUploadStatus = document.getElementById('file-upload-status');
+            const dropzone = document.getElementById('dropzone');
             const generateBtn = document.getElementById('generate-btn');
             const downloadBtn = document.getElementById('download-btn');
             const documentContentDiv = document.getElementById('document-content');
             const documentContentContainer = document.getElementById('document-content-container');
             const uploadedFilesContainer = document.getElementById('uploaded-files-container');
-            
+            const aiStatusWindow = document.getElementById('ai-status-window');
+            const aiStatusText = document.getElementById('ai-status-text');
+            const aiStatusIconPlaceholder = document.getElementById('ai-status-icon-placeholder');
+            const aiLoaderIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
             let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
-
-            // Set up Lucide icons
-            const botIcon = lucide.createIcons()['Bot'].toSvg();
-            const uploadIcon = lucide.createIcons()['FileUp'].toSvg();
-            const generateIcon = lucide.createIcons()['Wand2'].toSvg();
-            const downloadIcon = lucide.createIcons()['Download'].toSvg();
-            const fileIcon = lucide.createIcons()['File'].toSvg();
-            const trashIcon = lucide.createIcons()['Trash2'].toSvg();
-            const checkIcon = lucide.createIcons()['Check'].toSvg({ class: 'h-4 w-4 text-green-500' });
-            const loaderIcon = lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin text-blue-400' });
-            
-            document.getElementById('bot-icon-placeholder').innerHTML = botIcon;
-            document.getElementById('upload-icon-placeholder').innerHTML = uploadIcon;
-            document.getElementById('generate-icon-placeholder').innerHTML = generateIcon;
-            document.getElementById('download-icon-placeholder').innerHTML = downloadIcon;
-            document.getElementById('check-icon-placeholder').innerHTML = checkIcon;
-            document.getElementById('check-icon-placeholder2').innerHTML = checkIcon;
-            document.getElementById('check-icon-placeholder3').innerHTML = checkIcon;
-
-            // Set up PDF.js worker
             if (typeof pdfjsLib !== 'undefined') {
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
             }
-
-            // Set up Mermaid.js
             if (typeof mermaid !== 'undefined') {
-                mermaid.initialize({ startOnLoad: false, theme: 'default' });
+                mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
             }
-
-            // Render uploaded files list
+            const setIcon = (elementId, iconName) => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.innerHTML = lucide.createIcons()[iconName].toSvg();
+                }
+            };
+            setIcon('upload-icon-placeholder', 'FileUp');
+            setIcon('generate-icon-placeholder', 'Wand2');
+            setIcon('download-icon-placeholder', 'Download');
+            const showAIStatus = (text) => {
+                aiStatusText.textContent = text;
+                aiStatusWindow.style.opacity = '1';
+                aiStatusWindow.style.transform = 'translateY(0)';
+                if (aiStatusIconPlaceholder)
+                    aiStatusIconPlaceholder.innerHTML = aiLoaderIcon;
+            };
+            const hideAIStatus = () => {
+                aiStatusWindow.style.opacity = '0';
+                aiStatusWindow.style.transform = 'translateY(100%)';
+            };
             const renderUploadedFiles = () => {
                 uploadedFilesContainer.innerHTML = '';
                 if (uploadedFiles.length === 0) {
-                    uploadedFilesContainer.innerHTML = `<p class="text-xs text-center text-gray-400 mt-2">No se han subido documentos.</p>`;
+                    uploadedFilesContainer.classList.add('hidden');
                     return;
                 }
-                
+                uploadedFilesContainer.classList.remove('hidden');
                 uploadedFiles.forEach((file, index) => {
                     const fileElement = document.createElement('div');
-                    fileElement.className = 'flex items-center justify-between p-2 bg-gray-100 rounded-lg border border-gray-300 transition-colors hover:bg-gray-200';
+                    fileElement.className = 'flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 transition-colors hover:bg-gray-100 fade-in-up';
+                    const fileIcon = lucide.createIcons()['FileText'].toSvg();
+                    const trashIcon = lucide.createIcons()['Trash2'].toSvg();
                     fileElement.innerHTML = `
-                        <div class="flex items-center space-x-2">
-                            <div class="h-4 w-4 text-green-600">${fileIcon}</div>
-                            <span class="text-xs text-gray-700 truncate">${file.name}</span>
-                        </div>
-                        <button class="p-1 rounded-full text-gray-400 hover:text-red-600 transition-colors remove-file-btn" data-index="${index}">
-                            <div class="h-3 w-3">${trashIcon}</div>
-                        </button>
-                    `;
+                    <div class="flex items-center space-x-3">
+                        <div class="h-5 w-5 text-green-500">${fileIcon}</div>
+                        <span class="text-sm text-gray-700 truncate">${file.name}</span>
+                    </div>
+                    <button class="p-1 rounded-full text-gray-400 hover:text-red-600 transition-colors remove-file-btn" data-index="${index}">
+                        <div class="h-4 w-4">${trashIcon}</div>
+                    </button>
+                `;
                     uploadedFilesContainer.appendChild(fileElement);
                 });
-
                 document.querySelectorAll('.remove-file-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const index = e.currentTarget.getAttribute('data-index');
-                        uploadedFiles.splice(index, 1);
+                        uploadedFiles.splice(parseInt(index, 10), 1);
                         localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
                         renderUploadedFiles();
                     });
                 });
             };
-
-            // Handle file upload
-            document.querySelector('#upload-icon-placeholder').parentElement.addEventListener('click', () => {
-                document.getElementById('file-upload').click();
-            });
-
-            fileUpload.addEventListener('change', async (event) => {
-                const files = event.target.files;
-                if (!files.length) return;
-
-                const loadingContainer = document.createElement('div');
-                loadingContainer.className = 'flex items-center justify-center space-x-2 p-2 bg-gray-100 border border-gray-300 rounded-lg';
-                loadingContainer.innerHTML = `${loaderIcon}<span class="text-xs text-gray-500">Cargando PDF(s)...</span>`;
-                uploadedFilesContainer.appendChild(loadingContainer);
-                fileUploadStatus.textContent = 'Cargando...';
-                
+            const processFiles = (files) => __awaiter(void 0, void 0, void 0, function* () {
+                var _a;
+                showAIStatus('Leyendo archivos...');
                 const newFiles = [];
-
                 for (const file of files) {
                     try {
                         let fileContent = '';
-                        if (file.type === 'application/pdf' && typeof pdfjsLib !== 'undefined') {
-                            const typedarray = new Uint8Array(await file.arrayBuffer());
-                            const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                        if (file.type === 'application/pdf') {
+                            const typedarray = new Uint8Array(yield file.arrayBuffer());
+                            const pdf = yield pdfjsLib.getDocument({ data: typedarray }).promise;
                             for (let i = 1; i <= pdf.numPages; i++) {
-                                const page = await pdf.getPage(i);
-                                const textContent = await page.getTextContent();
+                                const page = yield pdf.getPage(i);
+                                const textContent = yield page.getTextContent();
                                 fileContent += textContent.items.map(item => item.str).join(' ');
                             }
-                        } else if (file.type === 'text/plain' || file.name.endsWith('.md')) {
-                            fileContent = await new Promise((resolve) => {
+                        }
+                        else if (file.type === 'text/plain' || file.name.endsWith('.md')) {
+                            fileContent = yield new Promise((resolve) => {
                                 const reader = new FileReader();
-                                reader.onload = (e) => resolve(e.target.result);
+                                reader.onload = (e) => resolve((_a = e.target) === null || _a === void 0 ? void 0 : _a.result);
                                 reader.readAsText(file);
                             });
-                        } else {
-                            console.error('Tipo de archivo no soportado:', file.name);
+                        }
+                        else {
+                            console.error('Unsupported file type:', file.name);
                             continue;
                         }
                         newFiles.push({ name: file.name, content: fileContent });
-                    } catch (error) {
-                        console.error('Error al leer el archivo:', file.name, error);
+                    }
+                    catch (error) {
+                        console.error('Error reading file:', file.name, error);
                     }
                 }
-                
                 uploadedFiles.push(...newFiles);
                 localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
-                loadingContainer.remove();
-                fileUploadStatus.textContent = 'Subir Documentos';
                 renderUploadedFiles();
+                hideAIStatus();
             });
-
-            // Generate document function
-            generateBtn.addEventListener('click', async () => {
+            dropzone.addEventListener('click', () => fileUpload.click());
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-blue-500', 'bg-blue-50');
+            });
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            dropzone.addEventListener('drop', (e) => {
+                var _a;
+                e.preventDefault();
+                dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+                const files = ((_a = e.dataTransfer) === null || _a === void 0 ? void 0 : _a.files) || [];
+                if (files.length > 0) {
+                    void processFiles(files);
+                }
+            });
+            fileUpload.addEventListener('change', (event) => {
+                const files = event.target.files;
+                if (files && files.length > 0) {
+                    void processFiles(files);
+                }
+            });
+            generateBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
+                var _b, _c, _d, _e;
                 const prompt = promptInput.value;
                 const fullContext = uploadedFiles.map(f => f.content).join('\n\n---\n\n');
-                
                 if (!prompt && !fullContext) {
-                    alert('Por favor, introduce una instrucción o sube un documento de contexto.');
+                    alert('Please provide an instruction or upload context documents.');
                     return;
                 }
-                
-                // Update UI state
                 generateBtn.disabled = true;
                 downloadBtn.disabled = true;
                 document.getElementById('generate-btn-text').textContent = 'Generando...';
-                document.getElementById('generate-icon-placeholder').innerHTML = loaderIcon;
+                document.getElementById('generate-icon-placeholder').innerHTML = aiLoaderIcon;
                 documentContentContainer.classList.add('hidden');
-                
-                const instructionWithDiagrams = `Por favor, genera un documento del modelo de dominio del proyecto siguiendo estas instrucciones:\n\n${prompt}\n\nFormatea el documento utilizando las reglas de APA v7. Si se solicitan diagramas (clases, paquetes, etc.), usa el formato de Mermaid (envuelto en \`\`\`mermaid ... \`\`\`). Para las tablas, usa el formato estándar de Markdown.`;
-                const fullPrompt = fullContext ? `Usando los siguientes documentos como contexto:\n\n${fullContext}\n\nBasado en este contexto, por favor, completa la siguiente tarea:\n\n${instructionWithDiagrams}` : instructionWithDiagrams;
-                
+                const instruction = `Please generate a project domain model document based on the following instructions:\n\n${prompt}\n\nFormat the document using APA v7 rules. If diagrams (class, package, etc.) are requested, use the Mermaid format (wrapped in \`\`\`mermaid ... \`\`\`). Use standard Markdown for tables.`;
+                const fullPrompt = fullContext ? `Using the following documents as context:\n\n${fullContext}\n\nBased on this context, please complete the following task:\n\n${instruction}` : instruction;
                 try {
+                    showAIStatus('Analizando contenido...');
                     const chatHistory = [{ role: "user", parts: [{ text: fullPrompt }] }];
                     const payload = { contents: chatHistory };
                     const apiKey = "";
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-                    const response = await fetch(apiUrl, {
+                    const response = yield fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-
                     if (!response.ok) {
-                        throw new Error(`La llamada a la API falló con el estado: ${response.status}`);
+                        throw new Error(`API call failed with status: ${response.status}`);
                     }
-
-                    const result = await response.json();
-                    let generatedText = "Lo siento, no pude generar un documento. Por favor, intenta con otra solicitud.";
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
+                    const result = yield response.json();
+                    let generatedText = "Sorry, I could not generate a document. Please try again with a different request.";
+                    if (((_c = (_b = result.candidates) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.content) && ((_e = (_d = result.candidates[0].content.parts) === null || _d === void 0 ? void 0 : _d[0]) === null || _e === void 0 ? void 0 : _e.text)) {
                         generatedText = result.candidates[0].content.parts[0].text;
                     }
-
                     const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
-                    const processedText = generatedText.replace(mermaidRegex, (match, p1) => {
-                        return `<div class="mermaid">${p1}</div>`;
-                    });
-                    
+                    const processedText = generatedText.replace(mermaidRegex, (match, p1) => `<div class="mermaid">${p1}</div>`);
                     const htmlContent = marked.parse(processedText);
                     documentContentDiv.innerHTML = htmlContent;
                     documentContentContainer.classList.remove('hidden');
-
                     if (typeof mermaid !== 'undefined') {
                         mermaid.init(undefined, '.mermaid');
                     }
-                    
-                } catch (error) {
-                    console.error('Error al generar el documento:', error);
-                    documentContentDiv.innerHTML = `<p class="text-red-500">Ocurrió un error. Por favor, revisa la consola para más detalles: ${error.message}</p>`;
+                }
+                catch (error) {
+                    console.error('Error generating document:', error);
+                    documentContentDiv.innerHTML = `<p class="text-red-500">An error occurred. Please check the console for details: ${error.message}</p>`;
                     documentContentContainer.classList.remove('hidden');
-                } finally {
+                }
+                finally {
                     generateBtn.disabled = false;
                     downloadBtn.disabled = false;
                     document.getElementById('generate-btn-text').textContent = 'Generar';
-                    document.getElementById('generate-icon-placeholder').innerHTML = generateIcon;
+                    setIcon('generate-icon-placeholder', 'Wand2');
+                    hideAIStatus();
                 }
-            });
-
-            // Download PDF function
-            downloadBtn.addEventListener('click', async () => {
-                if (documentContentDiv.classList.contains('hidden')) return;
-
+            }));
+            downloadBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
+                if (documentContentContainer.classList.contains('hidden'))
+                    return;
                 downloadBtn.disabled = true;
                 document.getElementById('download-btn-text').textContent = 'Creando PDF...';
-                document.getElementById('download-icon-placeholder').innerHTML = loaderIcon;
-
+                document.getElementById('download-icon-placeholder').innerHTML = aiLoaderIcon;
                 try {
                     const docElement = document.getElementById('document-content-container');
-                    
-                    const canvas = await html2canvas(docElement, {
+                    const canvas = yield html2canvas(docElement, {
                         scale: 2,
                         useCORS: true,
                         backgroundColor: '#f3f4f6'
                     });
-
                     const imgData = canvas.toDataURL('image/png');
                     const pdf = new jspdf.jsPDF({
                         orientation: 'p',
                         unit: 'mm',
                         format: 'a4'
                     });
-
-                    const imgWidth = 210; 
+                    const imgWidth = 210;
                     const pageHeight = 295;
                     const imgHeight = canvas.height * imgWidth / canvas.width;
                     let heightLeft = imgHeight;
                     let position = 0;
-
                     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
                     heightLeft -= pageHeight;
-
                     while (heightLeft >= 0) {
                         position = heightLeft - imgHeight;
                         pdf.addPage();
                         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
                         heightLeft -= pageHeight;
                     }
-
                     pdf.save('documento_generado.pdf');
-                } catch (error) {
-                    console.error('Error al crear el PDF:', error);
-                    alert('Ocurrió un error al crear el PDF. Por favor, revisa la consola.');
-                } finally {
+                }
+                catch (error) {
+                    console.error('Error creating PDF:', error);
+                    alert('An error occurred while creating the PDF. Please check the console.');
+                }
+                finally {
                     downloadBtn.disabled = false;
                     document.getElementById('download-btn-text').textContent = 'Descargar';
-                    document.getElementById('download-icon-placeholder').innerHTML = downloadIcon;
+                    setIcon('download-icon-placeholder', 'Download');
                 }
-            });
-            
-            // Initial render
+            }));
             renderUploadedFiles();
         });
     </script>
