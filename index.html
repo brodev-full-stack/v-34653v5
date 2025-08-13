@@ -183,9 +183,55 @@
                     element.innerHTML = lucide.icons[iconName].toSvg();
                 }
             };
-            setIcon('upload-icon-placeholder', 'FileUp');
-            setIcon('generate-icon-placeholder', 'Wand2');
-            setIcon('download-icon-placeholder', 'Download');
+            
+            // Wait for Lucide to be fully loaded
+            // The library is loaded asynchronously, so we wait for its presence
+            const checkLucide = setInterval(() => {
+                if (typeof lucide !== 'undefined' && lucide.icons) {
+                    clearInterval(checkLucide);
+                    // Now it's safe to call setIcon
+                    setIcon('upload-icon-placeholder', 'FileUp');
+                    setIcon('generate-icon-placeholder', 'Wand2');
+                    setIcon('download-icon-placeholder', 'Download');
+                    
+                    // Fix for the FileUp icon which was causing a crash
+                    const fileTextIcon = lucide.icons['FileText'] ? lucide.icons['FileText'].toSvg() : '';
+                    const trash2Icon = lucide.icons['Trash2'] ? lucide.icons['Trash2'].toSvg() : '';
+
+                    const renderUploadedFiles = () => {
+                        uploadedFilesContainer.innerHTML = '';
+                        if (uploadedFiles.length === 0) {
+                            uploadedFilesContainer.classList.add('hidden');
+                            return;
+                        }
+                        uploadedFilesContainer.classList.remove('hidden');
+                        uploadedFiles.forEach((file, index) => {
+                            const fileElement = document.createElement('div');
+                            fileElement.className = 'flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 transition-colors hover:bg-gray-100 fade-in-up';
+                            fileElement.innerHTML = `
+                            <div class="flex items-center space-x-3">
+                                <div class="h-5 w-5 text-green-500">${fileTextIcon}</div>
+                                <span class="text-sm text-gray-700 truncate">${file.name}</span>
+                            </div>
+                            <button class="p-1 rounded-full text-gray-400 hover:text-red-600 transition-colors remove-file-btn" data-index="${index}">
+                                <div class="h-4 w-4">${trash2Icon}</div>
+                            </button>
+                        `;
+                            uploadedFilesContainer.appendChild(fileElement);
+                        });
+                        document.querySelectorAll('.remove-file-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const index = e.currentTarget.getAttribute('data-index');
+                                uploadedFiles.splice(parseInt(index, 10), 1);
+                                localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+                                renderUploadedFiles();
+                            });
+                        });
+                    };
+                    renderUploadedFiles();
+                }
+            }, 100);
+
             const showAIStatus = (text) => {
                 aiStatusText.textContent = text;
                 aiStatusWindow.style.opacity = '1';
@@ -197,38 +243,7 @@
                 aiStatusWindow.style.opacity = '0';
                 aiStatusWindow.style.transform = 'translateY(100%)';
             };
-            const renderUploadedFiles = () => {
-                uploadedFilesContainer.innerHTML = '';
-                if (uploadedFiles.length === 0) {
-                    uploadedFilesContainer.classList.add('hidden');
-                    return;
-                }
-                uploadedFilesContainer.classList.remove('hidden');
-                uploadedFiles.forEach((file, index) => {
-                    const fileElement = document.createElement('div');
-                    fileElement.className = 'flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 transition-colors hover:bg-gray-100 fade-in-up';
-                    const fileIcon = lucide.icons['FileText'].toSvg();
-                    const trashIcon = lucide.icons['Trash2'].toSvg();
-                    fileElement.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="h-5 w-5 text-green-500">${fileIcon}</div>
-                        <span class="text-sm text-gray-700 truncate">${file.name}</span>
-                    </div>
-                    <button class="p-1 rounded-full text-gray-400 hover:text-red-600 transition-colors remove-file-btn" data-index="${index}">
-                        <div class="h-4 w-4">${trashIcon}</div>
-                    </button>
-                `;
-                    uploadedFilesContainer.appendChild(fileElement);
-                });
-                document.querySelectorAll('.remove-file-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const index = e.currentTarget.getAttribute('data-index');
-                        uploadedFiles.splice(parseInt(index, 10), 1);
-                        localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
-                        renderUploadedFiles();
-                    });
-                });
-            };
+            
             const processFiles = (files) => __awaiter(void 0, void 0, void 0, function* () {
                 var _a;
                 showAIStatus('Leyendo archivos...');
@@ -264,9 +279,43 @@
                 }
                 uploadedFiles.push(...newFiles);
                 localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+                // Call renderUploadedFiles after processing to update the UI
+                const fileTextIcon = lucide.icons['FileText'] ? lucide.icons['FileText'].toSvg() : '';
+                const trash2Icon = lucide.icons['Trash2'] ? lucide.icons['Trash2'].toSvg() : '';
+                const renderUploadedFiles = () => {
+                    uploadedFilesContainer.innerHTML = '';
+                    if (uploadedFiles.length === 0) {
+                        uploadedFilesContainer.classList.add('hidden');
+                        return;
+                    }
+                    uploadedFilesContainer.classList.remove('hidden');
+                    uploadedFiles.forEach((file, index) => {
+                        const fileElement = document.createElement('div');
+                        fileElement.className = 'flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 transition-colors hover:bg-gray-100 fade-in-up';
+                        fileElement.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="h-5 w-5 text-green-500">${fileTextIcon}</div>
+                            <span class="text-sm text-gray-700 truncate">${file.name}</span>
+                        </div>
+                        <button class="p-1 rounded-full text-gray-400 hover:text-red-600 transition-colors remove-file-btn" data-index="${index}">
+                            <div class="h-4 w-4">${trash2Icon}</div>
+                        </button>
+                    `;
+                        uploadedFilesContainer.appendChild(fileElement);
+                    });
+                    document.querySelectorAll('.remove-file-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const index = e.currentTarget.getAttribute('data-index');
+                            uploadedFiles.splice(parseInt(index, 10), 1);
+                            localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+                            renderUploadedFiles();
+                        });
+                    });
+                };
                 renderUploadedFiles();
                 hideAIStatus();
             });
+
             dropzone.addEventListener('click', () => fileUpload.click());
             dropzone.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -295,7 +344,12 @@
                 const prompt = promptInput.value;
                 const fullContext = uploadedFiles.map(f => f.content).join('\n\n---\n\n');
                 if (!prompt && !fullContext) {
-                    alert('Please provide an instruction or upload context documents.');
+                    // Use a custom message box instead of alert
+                    documentContentDiv.innerHTML = `<div class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg" role="alert">
+                      <p class="font-bold">Advertencia</p>
+                      <p>Por favor, proporciona una instrucción o sube documentos de contexto.</p>
+                    </div>`;
+                    documentContentContainer.classList.remove('hidden');
                     return;
                 }
                 generateBtn.disabled = true;
@@ -335,7 +389,10 @@
                 }
                 catch (error) {
                     console.error('Error generating document:', error);
-                    documentContentDiv.innerHTML = `<p class="text-red-500">An error occurred. Please check the console for details: ${error.message}</p>`;
+                    documentContentDiv.innerHTML = `<div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg" role="alert">
+                      <p class="font-bold">Error</p>
+                      <p>Ocurrió un error. Por favor, revisa la consola para más detalles: ${error.message}</p>
+                    </div>`;
                     documentContentContainer.classList.remove('hidden');
                 }
                 finally {
@@ -382,7 +439,12 @@
                 }
                 catch (error) {
                     console.error('Error creating PDF:', error);
-                    alert('An error occurred while creating the PDF. Please check the console.');
+                    // Use a custom message box instead of alert
+                    documentContentDiv.innerHTML = `<div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg" role="alert">
+                      <p class="font-bold">Error</p>
+                      <p>Ocurrió un error al crear el PDF. Por favor, revisa la consola para más detalles.</p>
+                    </div>`;
+                    documentContentContainer.classList.remove('hidden');
                 }
                 finally {
                     downloadBtn.disabled = false;
@@ -390,10 +452,10 @@
                     setIcon('download-icon-placeholder', 'Download');
                 }
             }));
-            renderUploadedFiles();
         });
     </script>
 </body>
 </html>
+
 
 
