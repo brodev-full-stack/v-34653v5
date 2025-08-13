@@ -176,10 +176,11 @@
             if (typeof mermaid !== 'undefined') {
                 mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
             }
+            // Corrected setIcon function
             const setIcon = (elementId, iconName) => {
                 const element = document.getElementById(elementId);
-                if (element) {
-                    element.innerHTML = lucide.createIcons()[iconName].toSvg();
+                if (element && lucide.icons[iconName]) {
+                    element.innerHTML = lucide.icons[iconName].toSvg();
                 }
             };
             setIcon('upload-icon-placeholder', 'FileUp');
@@ -206,8 +207,8 @@
                 uploadedFiles.forEach((file, index) => {
                     const fileElement = document.createElement('div');
                     fileElement.className = 'flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 transition-colors hover:bg-gray-100 fade-in-up';
-                    const fileIcon = lucide.createIcons()['FileText'].toSvg();
-                    const trashIcon = lucide.createIcons()['Trash2'].toSvg();
+                    const fileIcon = lucide.icons['FileText'].toSvg();
+                    const trashIcon = lucide.icons['Trash2'].toSvg();
                     fileElement.innerHTML = `
                     <div class="flex items-center space-x-3">
                         <div class="h-5 w-5 text-green-500">${fileIcon}</div>
