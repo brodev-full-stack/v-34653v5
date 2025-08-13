@@ -318,11 +318,28 @@
 
             const processFiles = async (files) => {
                 showAIStatus('Processing files...');
+                console.log('Processing files:', files.length);
+                
                 const newFiles = [];
 
                 for (const file of files) {
+                    console.log('Processing file:', file.name, 'Type:', file.type, 'Size:', file.size);
+                    
                     if (file.size > MAX_FILE_SIZE) {
+                        console.warn('File too large:', file.name);
                         showMessage(`File "${file.name}" is too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`, 'warning');
+                        continue;
+                    }
+
+                    // Check file type
+                    const isValidType = file.type === 'application/pdf' || 
+                                       file.type === 'text/plain' || 
+                                       file.name.endsWith('.md') || 
+                                       file.name.endsWith('.txt');
+                    
+                    if (!isValidType) {
+                        console.warn('Invalid file type:', file.name, file.type);
+                        showMessage(`Unsupported file type: ${file.name}. Please use .txt, .md, or .pdf files.`, 'warning');
                         continue;
                     }
 
@@ -330,33 +347,51 @@
                         let fileContent = '';
                         
                         if (file.type === 'application/pdf') {
+                            console.log('Processing PDF:', file.name);
                             const arrayBuffer = await file.arrayBuffer();
                             const typedarray = new Uint8Array(arrayBuffer);
-                            const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
                             
-                            for (let i = 1; i <= pdf.numPages; i++) {
-                                const page = await pdf.getPage(i);
-                                const textContent = await page.getTextContent();
-                                fileContent += textContent.items.map(item => item.str).join(' ') + '\n';
+                            try {
+                                const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                                console.log('PDF loaded, pages:', pdf.numPages);
+                                
+                                for (let i = 1; i <= pdf.numPages; i++) {
+                                    const page = await pdf.getPage(i);
+                                    const textContent = await page.getTextContent();
+                                    fileContent += textContent.items.map(item => item.str).join(' ') + '\n';
+                                }
+                            } catch (pdfError) {
+                                console.error('PDF processing error:', pdfError);
+                                throw new Error(`Unable to read PDF: ${pdfError.message}`);
                             }
-                        } else if (file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
+                        } else {
+                            console.log('Processing text file:', file.name);
                             fileContent = await new Promise((resolve, reject) => {
                                 const reader = new FileReader();
-                                reader.onload = (e) => resolve(e.target.result);
-                                reader.onerror = (e) => reject(e);
+                                reader.onload = (e) => {
+                                    console.log('File read successfully');
+                                    resolve(e.target.result);
+                                };
+                                reader.onerror = (e) => {
+                                    console.error('FileReader error:', e);
+                                    reject(new Error('Failed to read file'));
+                                };
                                 reader.readAsText(file);
                             });
-                        } else {
-                            showMessage(`Unsupported file type: ${file.name}`, 'warning');
-                            continue;
                         }
 
-                        newFiles.push({
-                            name: file.name,
-                            content: fileContent,
-                            size: file.size,
-                            type: file.type
-                        });
+                        if (fileContent.trim()) {
+                            newFiles.push({
+                                name: file.name,
+                                content: fileContent.trim(),
+                                size: file.size,
+                                type: file.type || 'text/plain'
+                            });
+                            console.log('File processed successfully:', file.name);
+                        } else {
+                            console.warn('Empty file content:', file.name);
+                            showMessage(`File "${file.name}" appears to be empty.`, 'warning');
+                        }
 
                     } catch (error) {
                         console.error('Error processing file:', file.name, error);
@@ -364,16 +399,22 @@
                     }
                 }
 
-                uploadedFiles.push(...newFiles);
-                renderUploadedFiles();
-                hideAIStatus();
-
                 if (newFiles.length > 0) {
+                    uploadedFiles.push(...newFiles);
+                    renderUploadedFiles();
+                    console.log('Total files uploaded:', uploadedFiles.length);
                     showMessage(`Successfully processed ${newFiles.length} file(s).`, 'success');
                     setTimeout(() => {
-                        documentContentContainer.classList.add('hidden');
+                        if (documentContentDiv.querySelector('.bg-green-100')) {
+                            documentContentContainer.classList.add('hidden');
+                        }
                     }, 3000);
+                } else {
+                    console.log('No files were successfully processed');
+                    showMessage('No files were successfully processed. Please check file formats and try again.', 'warning');
                 }
+                
+                hideAIStatus();
             };
 
             // Event listeners
@@ -381,25 +422,42 @@
 
             dropzone.addEventListener('dragover', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('border-blue-500', 'bg-blue-50');
+            });
+
+            dropzone.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 dropzone.classList.add('border-blue-500', 'bg-blue-50');
             });
 
             dropzone.addEventListener('dragleave', (e) => {
                 e.preventDefault();
-                dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+                e.stopPropagation();
+                // Only remove styles if we're leaving the dropzone entirely
+                if (!dropzone.contains(e.relatedTarget)) {
+                    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+                }
             });
 
             dropzone.addEventListener('drop', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 dropzone.classList.remove('border-blue-500', 'bg-blue-50');
-                const files = Array.from(e.dataTransfer.files);
+                
+                const files = Array.from(e.dataTransfer?.files || []);
+                console.log('Files dropped:', files.length);
+                
                 if (files.length > 0) {
                     processFiles(files);
                 }
             });
 
             fileUpload.addEventListener('change', (event) => {
-                const files = Array.from(event.target.files);
+                const files = Array.from(event.target.files || []);
+                console.log('Files selected via input:', files.length);
+                
                 if (files.length > 0) {
                     processFiles(files);
                 }
@@ -547,4 +605,3 @@
                     }
 
                     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-
