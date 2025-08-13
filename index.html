@@ -66,88 +66,98 @@
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-gray-200 text-gray-800">
-    
-    <!-- Sidebar / Panel de control -->
-    <div class="w-full sm:w-1/3 md:w-1/4 lg:w-1/5 bg-gray-50 p-6 flex flex-col justify-between border-r border-gray-200 glass-panel">
-        <div class="space-y-6">
-            <header class="text-center">
-                <div class="h-10 w-10 mx-auto text-blue-600 mb-2" id="bot-icon-placeholder"></div>
-                <h1 class="text-xl font-bold tracking-tight">
-                    Generador IA
-                </h1>
-            </header>
-            
+<body class="flex flex-col min-h-screen bg-gray-200 text-gray-800">
+
+    <div class="flex-1 flex flex-col items-center p-6 md:p-12 lg:p-16">
+        <!-- Main Content Area -->
+        <div class="w-full max-w-xl text-center mb-10">
+            <h1 class="text-3xl font-light text-gray-800">Hello Cesar Torrecilla</h1>
+            <p class="text-xl font-light text-gray-600">What can I do for you?</p>
+        </div>
+
+        <!-- AI Interaction Card -->
+        <div class="w-full max-w-xl p-6 rounded-2xl shadow-xl glass-panel">
             <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
+                         <div class="h-4 w-4" id="upload-icon-placeholder"></div>
+                         <span class="text-sm font-medium text-gray-700 truncate" id="file-upload-status">Subir Documentos</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button id="generate-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100">
+                             <div class="h-4 w-4 inline-block" id="generate-icon-placeholder"></div>
+                             <span id="generate-btn-text">Generar</span>
+                        </button>
+                        <button id="download-btn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold text-sm rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100" disabled>
+                             <div class="h-4 w-4 inline-block" id="download-icon-placeholder"></div>
+                             <span id="download-btn-text">Descargar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="uploaded-files-container" class="space-y-2 max-h-32 overflow-y-auto">
+                    <!-- Uploaded files will be rendered here -->
+                </div>
+
                 <div>
-                    <label for="prompt-input" class="block text-sm font-medium text-gray-600 mb-1">
-                        Instrucción
-                    </label>
+                    <label for="prompt-input" class="sr-only">Instrucción</label>
                     <textarea
                         id="prompt-input"
                         class="w-full h-24 p-2 text-sm bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                        placeholder="Ej: Siguiendo la plantilla proporcionada, crea un documento del modelo de dominio del proyecto para una aplicación de gestión de tareas. Incluye los diagramas de clases y de paquetes."
+                        placeholder="Ej: Siguiendo la plantilla, crea un documento del modelo de dominio de un proyecto de gestión de tareas."
                     ></textarea>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-600 mb-2">
-                        Contexto (Opcional)
-                    </label>
-                    <div class="space-y-2">
-                        <label
-                            for="file-upload"
-                            class="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg cursor-pointer transition-all duration-300"
-                        >
-                            <div class="h-4 w-4" id="upload-icon-placeholder"></div>
-                            <span>Subir Documentos</span>
-                            <input id="file-upload" type="file" class="hidden" multiple accept=".txt, .md, .pdf" />
-                        </label>
-                        <div id="uploaded-files-container" class="space-y-2 max-h-32 overflow-y-auto">
-                            <!-- Uploaded files will be rendered here -->
-                        </div>
-                    </div>
-                </div>
+            </div>
+            
+            <!-- Suggestions section -->
+            <div class="mt-8">
+                <p class="text-gray-500 text-sm mb-2">Aquí tienes lo que podrías hacer con Manus:</p>
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-center space-x-2">
+                        <div class="h-4 w-4" id="check-icon-placeholder"></div>
+                        <span>Analizar los diagramas UML para identificar mejoras potenciales en una plataforma.</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <div class="h-4 w-4" id="check-icon-placeholder2"></div>
+                        <span>Generar una presentación que explique las características clave de la plataforma.</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <div class="h-4 w-4" id="check-icon-placeholder3"></div>
+                        <span>Crear una visualización de la metodología Kanban aplicada a un proyecto.</span>
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <div class="flex flex-col space-y-4">
-            <button
-                id="generate-btn"
-                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
-            >
-                <div class="h-4 w-4" id="generate-icon-placeholder"></div>
-                <span id="generate-btn-text">Generar Documento</span>
-            </button>
-            <button
-                id="download-btn"
-                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
-                disabled
-            >
-                <div class="h-4 w-4" id="download-icon-placeholder"></div>
-                <span id="download-btn-text">Descargar como PDF</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Área del documento principal -->
-    <div class="flex-1 p-6 md:p-12 lg:p-16 flex justify-center">
-        <div id="document-content-container" class="w-full max-w-2xl bg-gray-100 p-8 rounded-2xl shadow-xl overflow-y-auto glass-panel">
-            <div id="document-content-placeholder" class="h-full flex items-center justify-center text-center text-gray-500">
-                <span class="text-lg">Tu documento aparecerá aquí.</span>
-            </div>
-            <div id="document-content" class="hidden prose max-w-none prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed prose-li:text-base"></div>
+        <!-- Document Preview Area (hidden by default) -->
+        <div id="document-content-container" class="w-full max-w-3xl mt-12 p-8 rounded-2xl shadow-xl glass-panel hidden">
+            <div id="document-content" class="prose max-w-none prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed prose-li:text-base"></div>
         </div>
     </div>
     
+    <!-- Recomendations/Footer -->
+    <div class="w-full bg-gray-50 p-6 border-t border-gray-200">
+        <p class="text-sm font-medium text-gray-600 text-center mb-4">Recomendaciones</p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Recomendado</span>
+            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Destacado</span>
+            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Datos</span>
+            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Productividad</span>
+            <span class="px-3 py-1 bg-gray-200 rounded-full text-xs text-gray-700">Programación</span>
+        </div>
+    </div>
+    
+    <input id="file-upload" type="file" class="hidden" multiple accept=".txt, .md, .pdf" />
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const promptInput = document.getElementById('prompt-input');
             const fileUpload = document.getElementById('file-upload');
+            const fileUploadStatus = document.getElementById('file-upload-status');
             const generateBtn = document.getElementById('generate-btn');
             const downloadBtn = document.getElementById('download-btn');
             const documentContentDiv = document.getElementById('document-content');
-            const documentContentPlaceholder = document.getElementById('document-content-placeholder');
+            const documentContentContainer = document.getElementById('document-content-container');
             const uploadedFilesContainer = document.getElementById('uploaded-files-container');
             
             let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
@@ -159,12 +169,16 @@
             const downloadIcon = lucide.createIcons()['Download'].toSvg();
             const fileIcon = lucide.createIcons()['File'].toSvg();
             const trashIcon = lucide.createIcons()['Trash2'].toSvg();
+            const checkIcon = lucide.createIcons()['Check'].toSvg({ class: 'h-4 w-4 text-green-500' });
             const loaderIcon = lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin text-blue-400' });
             
             document.getElementById('bot-icon-placeholder').innerHTML = botIcon;
             document.getElementById('upload-icon-placeholder').innerHTML = uploadIcon;
             document.getElementById('generate-icon-placeholder').innerHTML = generateIcon;
             document.getElementById('download-icon-placeholder').innerHTML = downloadIcon;
+            document.getElementById('check-icon-placeholder').innerHTML = checkIcon;
+            document.getElementById('check-icon-placeholder2').innerHTML = checkIcon;
+            document.getElementById('check-icon-placeholder3').innerHTML = checkIcon;
 
             // Set up PDF.js worker
             if (typeof pdfjsLib !== 'undefined') {
@@ -210,15 +224,21 @@
             };
 
             // Handle file upload
+            document.querySelector('#upload-icon-placeholder').parentElement.addEventListener('click', () => {
+                document.getElementById('file-upload').click();
+            });
+
             fileUpload.addEventListener('change', async (event) => {
                 const files = event.target.files;
                 if (!files.length) return;
 
-                const newFiles = [];
                 const loadingContainer = document.createElement('div');
                 loadingContainer.className = 'flex items-center justify-center space-x-2 p-2 bg-gray-100 border border-gray-300 rounded-lg';
                 loadingContainer.innerHTML = `${loaderIcon}<span class="text-xs text-gray-500">Cargando PDF(s)...</span>`;
                 uploadedFilesContainer.appendChild(loadingContainer);
+                fileUploadStatus.textContent = 'Cargando...';
+                
+                const newFiles = [];
 
                 for (const file of files) {
                     try {
@@ -246,10 +266,11 @@
                         console.error('Error al leer el archivo:', file.name, error);
                     }
                 }
-
-                loadingContainer.remove();
+                
                 uploadedFiles.push(...newFiles);
                 localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+                loadingContainer.remove();
+                fileUploadStatus.textContent = 'Subir Documentos';
                 renderUploadedFiles();
             });
 
@@ -258,19 +279,20 @@
                 const prompt = promptInput.value;
                 const fullContext = uploadedFiles.map(f => f.content).join('\n\n---\n\n');
                 
-                if (!prompt && !fullContext) return;
+                if (!prompt && !fullContext) {
+                    alert('Por favor, introduce una instrucción o sube un documento de contexto.');
+                    return;
+                }
                 
                 // Update UI state
                 generateBtn.disabled = true;
                 downloadBtn.disabled = true;
                 document.getElementById('generate-btn-text').textContent = 'Generando...';
                 document.getElementById('generate-icon-placeholder').innerHTML = loaderIcon;
-                documentContentPlaceholder.classList.remove('hidden');
-                documentContentDiv.classList.add('hidden');
-                documentContentDiv.innerHTML = '';
+                documentContentContainer.classList.add('hidden');
                 
                 const instructionWithDiagrams = `Por favor, genera un documento del modelo de dominio del proyecto siguiendo estas instrucciones:\n\n${prompt}\n\nFormatea el documento utilizando las reglas de APA v7. Si se solicitan diagramas (clases, paquetes, etc.), usa el formato de Mermaid (envuelto en \`\`\`mermaid ... \`\`\`). Para las tablas, usa el formato estándar de Markdown.`;
-                const fullPrompt = fullContext ? `Usando el siguiente documento como contexto:\n\n${fullContext}\n\nBasado en este contexto, por favor, completa la siguiente tarea:\n\n${instructionWithDiagrams}` : instructionWithDiagrams;
+                const fullPrompt = fullContext ? `Usando los siguientes documentos como contexto:\n\n${fullContext}\n\nBasado en este contexto, por favor, completa la siguiente tarea:\n\n${instructionWithDiagrams}` : instructionWithDiagrams;
                 
                 try {
                     const chatHistory = [{ role: "user", parts: [{ text: fullPrompt }] }];
@@ -304,8 +326,7 @@
                     
                     const htmlContent = marked.parse(processedText);
                     documentContentDiv.innerHTML = htmlContent;
-                    documentContentPlaceholder.classList.add('hidden');
-                    documentContentDiv.classList.remove('hidden');
+                    documentContentContainer.classList.remove('hidden');
 
                     if (typeof mermaid !== 'undefined') {
                         mermaid.init(undefined, '.mermaid');
@@ -313,13 +334,12 @@
                     
                 } catch (error) {
                     console.error('Error al generar el documento:', error);
-                    documentContentDiv.innerHTML = "Ocurrió un error. Por favor, revisa la consola para más detalles.";
-                    documentContentPlaceholder.classList.add('hidden');
-                    documentContentDiv.classList.remove('hidden');
+                    documentContentDiv.innerHTML = `<p class="text-red-500">Ocurrió un error. Por favor, revisa la consola para más detalles: ${error.message}</p>`;
+                    documentContentContainer.classList.remove('hidden');
                 } finally {
                     generateBtn.disabled = false;
                     downloadBtn.disabled = false;
-                    document.getElementById('generate-btn-text').textContent = 'Generar Documento';
+                    document.getElementById('generate-btn-text').textContent = 'Generar';
                     document.getElementById('generate-icon-placeholder').innerHTML = generateIcon;
                 }
             });
@@ -338,7 +358,7 @@
                     const canvas = await html2canvas(docElement, {
                         scale: 2,
                         useCORS: true,
-                        backgroundColor: '#f3f4f6' // Match the light theme background
+                        backgroundColor: '#f3f4f6'
                     });
 
                     const imgData = canvas.toDataURL('image/png');
@@ -364,20 +384,22 @@
                         heightLeft -= pageHeight;
                     }
 
-                    pdf.save('documento_dominio.pdf');
+                    pdf.save('documento_generado.pdf');
                 } catch (error) {
                     console.error('Error al crear el PDF:', error);
                     alert('Ocurrió un error al crear el PDF. Por favor, revisa la consola.');
                 } finally {
                     downloadBtn.disabled = false;
-                    document.getElementById('download-btn-text').textContent = 'Descargar como PDF';
+                    document.getElementById('download-btn-text').textContent = 'Descargar';
                     document.getElementById('download-icon-placeholder').innerHTML = downloadIcon;
                 }
             });
             
+            // Initial render
             renderUploadedFiles();
         });
     </script>
 </body>
 </html>
+
 
