@@ -18,50 +18,61 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0c0a09;
-            color: #d4d4d4;
+            background: #e2e8f0;
+            color: #1f2937;
         }
-        /* Prose for markdown styling */
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
         .prose h1, .prose h2, .prose h3 {
-            color: #e5e7eb;
+            color: #111827;
         }
         .prose p {
-            color: #a1a1aa;
+            color: #374151;
         }
         .prose ul, .prose ol {
-            color: #a1a1aa;
+            color: #374151;
         }
         .prose a {
-            color: #38bdf8;
+            color: #2563eb;
         }
         .prose pre {
-            background-color: #1f2937;
-            color: #e5e7eb;
+            background-color: #e5e7eb;
+            color: #1f2937;
         }
         .prose table {
             border-collapse: collapse;
             width: 100%;
         }
         .prose th, .prose td {
-            border: 1px solid #4b5563;
+            border: 1px solid #d1d5db;
             padding: 8px;
             text-align: left;
         }
         .prose th {
-            background-color: #1f2937;
-            color: #e5e7eb;
+            background-color: #e5e7eb;
+            color: #1f2937;
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-gray-950 text-gray-100 font-sans">
+<body class="flex min-h-screen bg-gray-200 text-gray-800">
     
     <!-- Sidebar / Panel de control -->
-    <div class="w-full sm:w-1/3 md:w-1/4 lg:w-1/5 bg-gray-900 p-6 flex flex-col justify-between border-r border-gray-800">
+    <div class="w-full sm:w-1/3 md:w-1/4 lg:w-1/5 bg-gray-50 p-6 flex flex-col justify-between border-r border-gray-200 glass-panel">
         <div class="space-y-6">
             <header class="text-center">
-                <div class="h-10 w-10 mx-auto text-blue-500 mb-2" id="bot-icon-placeholder"></div>
+                <div class="h-10 w-10 mx-auto text-blue-600 mb-2" id="bot-icon-placeholder"></div>
                 <h1 class="text-xl font-bold tracking-tight">
                     Generador IA
                 </h1>
@@ -69,35 +80,31 @@
             
             <div class="space-y-4">
                 <div>
-                    <label for="prompt-input" class="block text-sm font-medium text-gray-400 mb-1">
+                    <label for="prompt-input" class="block text-sm font-medium text-gray-600 mb-1">
                         Instrucción
                     </label>
                     <textarea
                         id="prompt-input"
-                        class="w-full h-24 p-2 text-sm bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                        class="w-full h-24 p-2 text-sm bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                         placeholder="Ej: Siguiendo la plantilla proporcionada, crea un documento del modelo de dominio del proyecto para una aplicación de gestión de tareas. Incluye los diagramas de clases y de paquetes."
                     ></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
                         Contexto (Opcional)
                     </label>
-                    <div id="file-status-container">
-                        <div class="space-y-2">
-                            <label
-                                for="file-upload"
-                                class="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold text-sm rounded-xl shadow-lg cursor-pointer transition-all duration-300"
-                            >
-                                <div class="h-4 w-4" id="upload-icon-placeholder"></div>
-                                <span>Subir Documento</span>
-                                <input id="file-upload" type="file" class="hidden" accept=".txt, .md, .pdf" />
-                            </label>
-                            <textarea
-                                id="context-textarea"
-                                class="w-full h-16 p-2 text-sm bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                                placeholder="o pega tu texto aquí..."
-                            ></textarea>
+                    <div class="space-y-2">
+                        <label
+                            for="file-upload"
+                            class="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg cursor-pointer transition-all duration-300"
+                        >
+                            <div class="h-4 w-4" id="upload-icon-placeholder"></div>
+                            <span>Subir Documentos</span>
+                            <input id="file-upload" type="file" class="hidden" multiple accept=".txt, .md, .pdf" />
+                        </label>
+                        <div id="uploaded-files-container" class="space-y-2 max-h-32 overflow-y-auto">
+                            <!-- Uploaded files will be rendered here -->
                         </div>
                     </div>
                 </div>
@@ -125,31 +132,39 @@
 
     <!-- Área del documento principal -->
     <div class="flex-1 p-6 md:p-12 lg:p-16 flex justify-center">
-        <div id="document-content-container" class="w-full max-w-2xl bg-gray-800 p-8 rounded-2xl shadow-xl overflow-y-auto">
+        <div id="document-content-container" class="w-full max-w-2xl bg-gray-100 p-8 rounded-2xl shadow-xl overflow-y-auto glass-panel">
             <div id="document-content-placeholder" class="h-full flex items-center justify-center text-center text-gray-500">
                 <span class="text-lg">Tu documento aparecerá aquí.</span>
             </div>
-            <div id="document-content" class="hidden prose max-w-none prose-invert prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed prose-li:text-base"></div>
+            <div id="document-content" class="hidden prose max-w-none prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed prose-li:text-base"></div>
         </div>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const promptInput = document.getElementById('prompt-input');
-            const contextTextarea = document.getElementById('context-textarea');
             const fileUpload = document.getElementById('file-upload');
             const generateBtn = document.getElementById('generate-btn');
             const downloadBtn = document.getElementById('download-btn');
-            const documentContentContainer = document.getElementById('document-content-container');
             const documentContentDiv = document.getElementById('document-content');
             const documentContentPlaceholder = document.getElementById('document-content-placeholder');
-            const fileStatusContainer = document.getElementById('file-status-container');
+            const uploadedFilesContainer = document.getElementById('uploaded-files-container');
             
+            let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
+
             // Set up Lucide icons
-            document.getElementById('bot-icon-placeholder').innerHTML = lucide.createIcons()['Bot'].toSvg();
-            document.getElementById('upload-icon-placeholder').innerHTML = lucide.createIcons()['FileUp'].toSvg();
-            document.getElementById('generate-icon-placeholder').innerHTML = lucide.createIcons()['Wand2'].toSvg();
-            document.getElementById('download-icon-placeholder').innerHTML = lucide.createIcons()['Download'].toSvg();
+            const botIcon = lucide.createIcons()['Bot'].toSvg();
+            const uploadIcon = lucide.createIcons()['FileUp'].toSvg();
+            const generateIcon = lucide.createIcons()['Wand2'].toSvg();
+            const downloadIcon = lucide.createIcons()['Download'].toSvg();
+            const fileIcon = lucide.createIcons()['File'].toSvg();
+            const trashIcon = lucide.createIcons()['Trash2'].toSvg();
+            const loaderIcon = lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin text-blue-400' });
+            
+            document.getElementById('bot-icon-placeholder').innerHTML = botIcon;
+            document.getElementById('upload-icon-placeholder').innerHTML = uploadIcon;
+            document.getElementById('generate-icon-placeholder').innerHTML = generateIcon;
+            document.getElementById('download-icon-placeholder').innerHTML = downloadIcon;
 
             // Set up PDF.js worker
             if (typeof pdfjsLib !== 'undefined') {
@@ -158,127 +173,104 @@
 
             // Set up Mermaid.js
             if (typeof mermaid !== 'undefined') {
-                mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+                mermaid.initialize({ startOnLoad: false, theme: 'default' });
             }
 
-            let fileName = '';
-
-            // Handle file change
-            fileUpload.addEventListener('change', async (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                fileName = file.name;
-                contextTextarea.value = '';
-
-                if (file.type === 'application/pdf' && typeof pdfjsLib !== 'undefined') {
-                    // Show PDF loading state
-                    fileStatusContainer.innerHTML = `
-                        <div class="flex items-center justify-center space-x-2 p-2 bg-gray-800 border border-gray-700 rounded-lg">
-                            ${lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin text-blue-400' })}
-                            <span class="text-xs text-gray-300">Cargando PDF...</span>
+            // Render uploaded files list
+            const renderUploadedFiles = () => {
+                uploadedFilesContainer.innerHTML = '';
+                if (uploadedFiles.length === 0) {
+                    uploadedFilesContainer.innerHTML = `<p class="text-xs text-center text-gray-400 mt-2">No se han subido documentos.</p>`;
+                    return;
+                }
+                
+                uploadedFiles.forEach((file, index) => {
+                    const fileElement = document.createElement('div');
+                    fileElement.className = 'flex items-center justify-between p-2 bg-gray-100 rounded-lg border border-gray-300 transition-colors hover:bg-gray-200';
+                    fileElement.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <div class="h-4 w-4 text-green-600">${fileIcon}</div>
+                            <span class="text-xs text-gray-700 truncate">${file.name}</span>
                         </div>
+                        <button class="p-1 rounded-full text-gray-400 hover:text-red-600 transition-colors remove-file-btn" data-index="${index}">
+                            <div class="h-3 w-3">${trashIcon}</div>
+                        </button>
                     `;
-                    
-                    const fileReader = new FileReader();
-                    fileReader.onload = async (e) => {
-                        try {
-                            const typedarray = new Uint8Array(e.target.result);
+                    uploadedFilesContainer.appendChild(fileElement);
+                });
+
+                document.querySelectorAll('.remove-file-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const index = e.currentTarget.getAttribute('data-index');
+                        uploadedFiles.splice(index, 1);
+                        localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+                        renderUploadedFiles();
+                    });
+                });
+            };
+
+            // Handle file upload
+            fileUpload.addEventListener('change', async (event) => {
+                const files = event.target.files;
+                if (!files.length) return;
+
+                const newFiles = [];
+                const loadingContainer = document.createElement('div');
+                loadingContainer.className = 'flex items-center justify-center space-x-2 p-2 bg-gray-100 border border-gray-300 rounded-lg';
+                loadingContainer.innerHTML = `${loaderIcon}<span class="text-xs text-gray-500">Cargando PDF(s)...</span>`;
+                uploadedFilesContainer.appendChild(loadingContainer);
+
+                for (const file of files) {
+                    try {
+                        let fileContent = '';
+                        if (file.type === 'application/pdf' && typeof pdfjsLib !== 'undefined') {
+                            const typedarray = new Uint8Array(await file.arrayBuffer());
                             const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-                            let pdfText = '';
                             for (let i = 1; i <= pdf.numPages; i++) {
                                 const page = await pdf.getPage(i);
                                 const textContent = await page.getTextContent();
-                                pdfText += textContent.items.map(item => item.str).join(' ');
+                                fileContent += textContent.items.map(item => item.str).join(' ');
                             }
-                            contextTextarea.value = pdfText;
-                        } catch (error) {
-                            console.error('Error reading PDF:', error);
-                            contextTextarea.value = 'Error: No se pudo leer el archivo PDF.';
-                        } finally {
-                            // Restore file status UI
-                            renderFileStatus();
+                        } else if (file.type === 'text/plain' || file.name.endsWith('.md')) {
+                            fileContent = await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => resolve(e.target.result);
+                                reader.readAsText(file);
+                            });
+                        } else {
+                            console.error('Tipo de archivo no soportado:', file.name);
+                            continue;
                         }
-                    };
-                    fileReader.readAsArrayBuffer(file);
-                } else if (file.type === 'text/plain' || file.name.endsWith('.md')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        contextTextarea.value = e.target.result;
-                    };
-                    reader.readAsText(file);
-                    renderFileStatus();
-                } else {
-                    contextTextarea.value = 'Error: Tipo de archivo no soportado.';
-                    fileName = '';
-                    renderFileStatus();
+                        newFiles.push({ name: file.name, content: fileContent });
+                    } catch (error) {
+                        console.error('Error al leer el archivo:', file.name, error);
+                    }
                 }
+
+                loadingContainer.remove();
+                uploadedFiles.push(...newFiles);
+                localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+                renderUploadedFiles();
             });
-
-            // Handle file removal
-            function handleRemoveFile() {
-                fileName = '';
-                contextTextarea.value = '';
-                fileUpload.value = '';
-                renderFileStatus();
-            }
-
-            // Render file status UI
-            function renderFileStatus() {
-                if (fileName) {
-                    fileStatusContainer.innerHTML = `
-                        <div class="flex items-center justify-between p-2 bg-gray-800 border border-gray-700 rounded-lg">
-                            <div class="flex items-center space-x-2">
-                                ${lucide.createIcons()['File'].toSvg({ class: 'h-4 w-4 text-green-400' })}
-                                <span class="text-xs text-gray-300 truncate">${fileName}</span>
-                            </div>
-                            <button id="remove-file-btn" class="p-1 rounded-full text-gray-400 hover:text-red-400 transition-colors">
-                                ${lucide.createIcons()['Trash2'].toSvg({ class: 'h-3 w-3' })}
-                            </button>
-                        </div>
-                    `;
-                    document.getElementById('remove-file-btn').addEventListener('click', handleRemoveFile);
-                } else {
-                    fileStatusContainer.innerHTML = `
-                        <div class="space-y-2">
-                            <label
-                                for="file-upload"
-                                class="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold text-sm rounded-xl shadow-lg cursor-pointer transition-all duration-300"
-                            >
-                                ${lucide.createIcons()['FileUp'].toSvg({ class: 'h-4 w-4' })}
-                                <span>Subir Documento</span>
-                                <input id="file-upload" type="file" class="hidden" accept=".txt, .md, .pdf" />
-                            </label>
-                            <textarea
-                                id="context-textarea"
-                                class="w-full h-16 p-2 text-sm bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                                placeholder="o pega tu texto aquí..."
-                            ></textarea>
-                        </div>
-                    `;
-                    document.getElementById('file-upload').addEventListener('change', fileUpload.onchange);
-                }
-            }
 
             // Generate document function
             generateBtn.addEventListener('click', async () => {
                 const prompt = promptInput.value;
-                const context = contextTextarea.value;
+                const fullContext = uploadedFiles.map(f => f.content).join('\n\n---\n\n');
                 
-                if (!prompt && !context) return;
+                if (!prompt && !fullContext) return;
                 
                 // Update UI state
                 generateBtn.disabled = true;
                 downloadBtn.disabled = true;
                 document.getElementById('generate-btn-text').textContent = 'Generando...';
-                document.getElementById('generate-icon-placeholder').innerHTML = lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin' });
+                document.getElementById('generate-icon-placeholder').innerHTML = loaderIcon;
                 documentContentPlaceholder.classList.remove('hidden');
                 documentContentDiv.classList.add('hidden');
                 documentContentDiv.innerHTML = '';
                 
-                // Aclaramos al modelo que puede usar tablas de Markdown y diagramas de Mermaid
                 const instructionWithDiagrams = `Por favor, genera un documento del modelo de dominio del proyecto siguiendo estas instrucciones:\n\n${prompt}\n\nFormatea el documento utilizando las reglas de APA v7. Si se solicitan diagramas (clases, paquetes, etc.), usa el formato de Mermaid (envuelto en \`\`\`mermaid ... \`\`\`). Para las tablas, usa el formato estándar de Markdown.`;
-                const fullPrompt = context ? `Usando el siguiente documento como contexto:\n\n${context}\n\nBasado en este contexto, por favor, completa la siguiente tarea:\n\n${instructionWithDiagrams}` : instructionWithDiagrams;
+                const fullPrompt = fullContext ? `Usando el siguiente documento como contexto:\n\n${fullContext}\n\nBasado en este contexto, por favor, completa la siguiente tarea:\n\n${instructionWithDiagrams}` : instructionWithDiagrams;
                 
                 try {
                     const chatHistory = [{ role: "user", parts: [{ text: fullPrompt }] }];
@@ -305,7 +297,6 @@
                         generatedText = result.candidates[0].content.parts[0].text;
                     }
 
-                    // Handle Mermaid.js blocks specifically
                     const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
                     const processedText = generatedText.replace(mermaidRegex, (match, p1) => {
                         return `<div class="mermaid">${p1}</div>`;
@@ -329,7 +320,7 @@
                     generateBtn.disabled = false;
                     downloadBtn.disabled = false;
                     document.getElementById('generate-btn-text').textContent = 'Generar Documento';
-                    document.getElementById('generate-icon-placeholder').innerHTML = lucide.createIcons()['Wand2'].toSvg({ class: 'h-4 w-4' });
+                    document.getElementById('generate-icon-placeholder').innerHTML = generateIcon;
                 }
             });
 
@@ -339,7 +330,7 @@
 
                 downloadBtn.disabled = true;
                 document.getElementById('download-btn-text').textContent = 'Creando PDF...';
-                document.getElementById('download-icon-placeholder').innerHTML = lucide.createIcons()['Loader2'].toSvg({ class: 'h-4 w-4 animate-spin' });
+                document.getElementById('download-icon-placeholder').innerHTML = loaderIcon;
 
                 try {
                     const docElement = document.getElementById('document-content-container');
@@ -347,7 +338,7 @@
                     const canvas = await html2canvas(docElement, {
                         scale: 2,
                         useCORS: true,
-                        backgroundColor: '#1f2937'
+                        backgroundColor: '#f3f4f6' // Match the light theme background
                     });
 
                     const imgData = canvas.toDataURL('image/png');
@@ -380,9 +371,11 @@
                 } finally {
                     downloadBtn.disabled = false;
                     document.getElementById('download-btn-text').textContent = 'Descargar como PDF';
-                    document.getElementById('download-icon-placeholder').innerHTML = lucide.createIcons()['Download'].toSvg({ class: 'h-4 w-4' });
+                    document.getElementById('download-icon-placeholder').innerHTML = downloadIcon;
                 }
             });
+            
+            renderUploadedFiles();
         });
     </script>
 </body>
